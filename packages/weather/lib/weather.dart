@@ -252,6 +252,20 @@ class WeatherStation {
     return null;
   }
 
+  /// Fetch current weather based provided geographical coordinates
+  /// Result is JSON.
+  /// For API documentation, see: https://openweathermap.org/current
+  Future<Weather> currentWeatherForLatLon(double latitude, double longitude) async {
+    try {
+      Map<String, dynamic> currentWeather =
+      await _requestOpenWeatherAPIForLatLon(WEATHER, latitude, longitude);
+      return new Weather(currentWeather);
+    } catch (exception) {
+      print(exception);
+    }
+    return null;
+  }
+
   /// Fetch current weather based on geographical coordinates.
   /// Result is JSON.
   /// For API documentation, see: https://openweathermap.org/forecast5
@@ -294,6 +308,7 @@ class WeatherStation {
 
       /// Send HTTP get response with the url
       http.Response response = await http.get(url);
+      print(url);
 
       /// Perform error checking on response:
       /// Status code 200 means everything went well
@@ -314,5 +329,33 @@ class WeatherStation {
     /// If permission to track location is not yet given.
     throw new LocationPermissionException(
         "PermissionLocation permission not granted!");
+  }
+
+  Future<Map<String, dynamic>> _requestOpenWeatherAPIForLatLon(String tag, double latitude, double longitude) async {
+    /// Build HTTP get url by passing the required parameters
+    String url = 'http://api.openweathermap.org/data/2.5/' +
+        '$tag?' +
+        'lat=$latitude&' +
+        'lon=$longitude&' +
+        'appid=$_apiKey';
+
+    /// Send HTTP get response with the url
+    http.Response response = await http.get(url);
+    print(url);
+
+    /// Perform error checking on response:
+    /// Status code 200 means everything went well
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonBody = json.decode(response.body);
+      return jsonBody;
+    }
+
+    /// The API key is invalid, the API may be down
+    /// or some other unspecified error could occur.
+    /// The concrete error should be clear from the HTTP response body.
+    else {
+      throw new OpenWeatherAPIException(
+          "OpenWeather API Exception: ${response.body}");
+    }
   }
 }
