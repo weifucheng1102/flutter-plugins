@@ -24,13 +24,11 @@ class Light {
 
   /// Getter for light stream, throws an exception if device isn't on Android platform
   Stream<int> get lightSensorStream {
-    if (Platform.isAndroid) {
       if (_lightSensorStream == null) {
         _lightSensorStream =
             _eventChannel.receiveBroadcastStream().map((lux) => lux);
       }
       return _lightSensorStream;
-    }
-    throw LightException('Light sensor API exclusively available on Android!');
+    
   }
 }
